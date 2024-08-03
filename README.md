@@ -17,7 +17,7 @@ This application provides an intuitive interface to input vehicle details, selec
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/vehicle-simulation-shift-calculator.git
+   git clone https://github.com/asbedb/Drive-ShiftSavvy.git
 
 2. **If running locally ensure CORS-Anywhere or a similar Cross Origin Local Service is Installed**
     ```bash
