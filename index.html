@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!--asbedb.dev/ 2024-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drive ShiftSavvy</title>
+    <link rel="icon" type="image/x-icon" href="img/logo.png">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header>
+        <img class="logo" src="img/logo.png"/>
+        <h1>Drive ShiftSavvy</h1>
+        <h3><i>Maximize Your Ride-Share Income</i></h3>
+    </header>
+    <main>
+        <section id="car-info">
+            <h2> Information</h2>
+            <form id="car-info">
+                <label for="vehicle-year">Vehicle Year:</label>
+                <select id="vehicle-year" name="vehicle-year" required>
+                    <option value="">Select a Year</option>
+                </select>
+                <label for="vehicle-make">Vehicle Make:</label>
+                <select id="vehicle-make" name="vehicle-make" required>
+                    <option value="">Select a Make</option>
+                </select>
+                <label for="vehicle-model">Vehicle Model:</label>
+                <select id="vehicle-model" name="vehicle-model" required>
+                    <option value="">Select a Model</option>
+                </select>
+                <label for="vehicle-variant">Vehicle Variant:</label>
+                <select id="vehicle-variant" name="vehicle-variant" required>
+                    <option value="">Select a Variant</option>
+                </select> 
+                <label for="vehicle-fuel-measurement">Fuel Measurement:</label>
+                <select id="vehicle-fuel-measurement" name="vehicle-fuel-measurement" required>
+                    <option value="MPG">Select a Unit of Measurement</option>
+                    <option value="MPG">Miles per Gallon</option>
+                    <option value="KPL">Kilometers per Liter</option>
+                </select>             
+                <button id="car-select" type="button">Select Car</button>
+            </form>
+        </section>
+        <section id="deliveries">
+            <h2>Simulation Parameters</h2>
+            <form id="simulate-deliveries">
+                <label for="shift-type">Type of Shift:</label>
+                <select id="shift-type" name="shift-type" required>
+                    <option value="rideshare">Select a Shift Type (Default Rideshare)</option>
+                    <option value="rideshare">RideShare</option>
+                    <option value="food-delivery">Food Delivery</option>
+                </select>
+                <label for="shift-day">Weekend or Weekday:</label>
+                <select id="shift-day" name="shift-day" required>
+                    <option value="weekday-rate">Select Weekend or Weekday(Default Weekday)</option>
+                    <option value="weekend-rate">Weekend (Fri - Sun)</option>
+                    <option value="weekday-rate">Weekday (Mon - Thu)</option>
+                </select>
+                <label for="shift-unit">Kilometers or Miles (Fuel and Distance Return):</label>
+                <select id="shift-unit" name="shift-unit" required>
+                    <option value="unit-miles">Select Kilometers or Miles (Default Miles)</option>
+                    <option value="unit-kilometers">Kilometeres (Km)</option>
+                    <option value="unit-miles">Miles (Mi)</option>
+                </select>
+                <label for="shift-start">Start Time:</label>
+                <input type="time" id="shift-start" name="shift-start" required>
+                <label for="shift-end">End Time:</label>
+                <input type="time" id="shift-end" name="shift-end" required>
+                <label for="shift-fuel">Fuel Price (Per Liter/Gallon):</label>
+                <input type="number" min="0.01" step="0.01" id="shift-fuel" name="shift-fuel" required>
+                <label for="shift-break">Break(s) (Minutes):</label>
+                <input type="number" min="0" step="1" id="shift-break" name="shift-break" required>
+                <button id="simulate" type="button">Simulate</button>
+            </form>
+        </section>
+        <section id="earnings">
+            <h3>Algorithm Assumes the Following (Rideshare):</h3>
+            <li>6.75 Jobs per 7.5 Hours</li>
+            <li>10 km / 6.2mi per Job (Incl Drive to Pickup)</li>
+            <li>$30.50 per Job Before Expenses</li>
+            <li>30 Minute Forced Break Every 8 Hours</li>
+            <li>Weekend Assumes x1.25 Multiplier on Total Jobs and Pay Per Job.</li><br>
+            <!--Food Delievery Algo Explenation-->
+            <h3>Algorithm Assumes the Following (Food Delivery):</h3>
+            <li>11.25 Jobs per 7.5 Hours</li>
+            <li>5 km / 3.1mi per Job (Incl Drive to Pickup)</li>
+            <li>$15 per Job Before Expenses</li>
+            <li>30 Minute Forced Break Every 8 Hours</li>
+            <li>Weekend Assumes x1.25 Multiplier on Total Jobs and Pay Per Job.</li>
+            <br>
+            <h2>Estimated Earnings</h2>
+            <p><strong>Hours in Shift:</strong> <span id="total-hours"></span></p>
+            <p><strong>Break in Minutes:</strong> <span id="total-breaks"></span></p>
+            <p><strong>Estimated Number of Fares:</strong><br> <span id="total-fares"></span></p>
+            <p><strong>Estimated Distance Travelled:</strong><br> <span id="total-travel"></span></p>
+            <p><strong>Earnings before Expenses:</strong><br> $<span id="total-earnings-gross">0.00</span></p>
+            <p><strong>Estimated Fuel Expenses:</strong><br> $<span id="total-expenses">0.00</span></p>
+            <p><strong>Net Earnings:</strong><br> $<span id="total-earnings-net">0.00</span></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 asbedb.dev/</p>
+    </footer>
+    <script src="js/main.js"></script>
+</body>
+</html>
