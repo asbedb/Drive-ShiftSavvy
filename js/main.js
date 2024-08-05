@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function () {
         let jobsPerHour;
         let distancePerJobMiles;
         let payperJob;
-        
+        //Type of Shift checker
         if(shiftType == "rideshare"){
             jobsPerHour = 0.9;
             distancePerJobMiles = 6.2;
@@ -206,16 +206,23 @@ document.addEventListener('DOMContentLoaded', function () {
     function calculateDistanceFuelandProfits(rangeOutput, shiftHours, shiftBreak, jobsPerHour, distancePerJobMiles, payperJob){
         const fuelPrice = document.getElementById('shift-fuel').value;
         const shiftDay = document.getElementById('shift-day').value;
-
-
-
+        const shiftUnit = document.getElementById('shift-unit').value
+        let totalDistance = 0;
+        let distanceUnit = "Mi";
         let totalJobs = Math.round((shiftHours - (shiftBreak / 60)) * jobsPerHour);
+        //Rate Multipliers
         if (shiftDay === "weekend-rate") {
             totalJobs *= 1.25;
             payperJob *= 1.25;
         }
-
-        const totalDistance = totalJobs * distancePerJobMiles;
+        //Unit Conversions
+        if(shiftUnit === "unit-kilometers"){
+            totalDistance = (totalJobs * distancePerJobMiles) * 1.609;
+            distanceUnit = "Km"
+        } else{
+            totalDistance = totalJobs * distancePerJobMiles;
+            distanceUnit = "Mi"
+        }
         const fuelExpense = (totalDistance / rangeOutput) * fuelPrice;
         const grossIncome = totalJobs * payperJob;
         const netIncome = grossIncome - fuelExpense;
@@ -224,15 +231,16 @@ document.addEventListener('DOMContentLoaded', function () {
             netIncome: netIncome.toFixed(2),
             fuelExpense: fuelExpense.toFixed(2),
             totalJobs,
-            totalDistance: totalDistance.toFixed(2)
+            totalDistance: totalDistance.toFixed(2),
+            distanceUnit
         };  
     }
 
-    function simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak){
+    function simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak, distanceUnit){
         hoursLabel.innerText = shiftHours; 
         breakLabel.innerText = shiftBreak;
         faresLabel.innerText = totalJobs;
-        distanceLabel.innerText = totalDistance;
+        distanceLabel.innerText = totalDistance + " " + distanceUnit;
         grossLabel.innerText = grossIncome;
         expenseLabel.innerText = fuelExpense;
         netLabel.innerText = netIncome;
@@ -253,8 +261,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const { jobsPerHour, distancePerJobMiles, payperJob } = shiftTypeFunction();
             if (shiftHours !== null && shiftBreak !== null && jobsPerHour !== null && distancePerJobMiles !== null && payperJob !== null) {
                 // Calculate distance, fuel, and profits
-                const { grossIncome, netIncome, fuelExpense, totalJobs, totalDistance } = calculateDistanceFuelandProfits(rangeOutput, shiftHours, shiftBreak, jobsPerHour, distancePerJobMiles, payperJob);
-                simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak);
+                const { grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, distanceUnit } = calculateDistanceFuelandProfits(rangeOutput, shiftHours, shiftBreak, jobsPerHour, distancePerJobMiles, payperJob);
+                simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak, distanceUnit);
             } else {
                 alert("Something Went Wrong - Please Try Again");
                 console.log(error);

@@ -2,6 +2,8 @@
 
 Welcome to **Drive ShiftSavvy**, a comprehensive web application designed to help you estimate vehicle fuel efficiency and calculate shift earnings for rideshare and food delivery drivers.
 
+All fuel consumptions and estimates rely on the US Government service for fuel utilising the API from https://www.fueleconomy.gov/
+
 ## Overview
 
 This application provides an intuitive interface to input vehicle details, select shift parameters, and calculate various metrics such as total earnings, expenses, and travel distances. Whether you're a driver trying to optimize your work schedule or a vehicle owner curious about fuel consumption, this tool offers valuable insights to help you make informed decisions.
