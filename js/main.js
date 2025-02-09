@@ -9,7 +9,7 @@ _____    _____\_ |__   ____   __| _/\_ |__        __| _/_______  __    / /  \___
 
 document.addEventListener('DOMContentLoaded', function () {
     // Base URL for your Cross Origin Server parsing prior to API Call (Used for local hosting primarily)
-    //const baseUrl = 'http://github.io/'; 
+    const baseUrl = 'https://cors-anywhere.herokuapp.com/'; 
 
     //base constants for vehicle input form
     const yearSelect = document.getElementById('vehicle-year');
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function fetchData(endpoint) {
         try {
             //add ${baseUrl} prior to ${endpoint} for burl cases
-            const url = `${endpoint}`;
+            const url = `${baseUrl}${endpoint}`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
