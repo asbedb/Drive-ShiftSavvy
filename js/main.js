@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 method: 'GET',
                 headers: {
                     //ensure your origin is correctly set
-                    'Origin': 'http://asbedb.github.io/Drive-ShiftSavvy/',
+                    // 'Origin': 'http://asbedb.github.io/Drive-ShiftSavvy/',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
