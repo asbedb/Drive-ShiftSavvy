@@ -9,7 +9,7 @@ _____    _____\_ |__   ____   __| _/\_ |__        __| _/_______  __    / /  \___
 
 document.addEventListener('DOMContentLoaded', function () {
     // Base URL for your Cross Origin Server parsing prior to API Call (Used for local hosting primarily)
-    const baseUrl = 'http://localhost:8080/'; 
+    //const baseUrl = 'http://github.io/'; 
 
     //base constants for vehicle input form
     const yearSelect = document.getElementById('vehicle-year');
@@ -52,11 +52,13 @@ document.addEventListener('DOMContentLoaded', function () {
     //to add a functionality here where it will try local storage first
     async function fetchData(endpoint) {
         try {
-            const url = `${baseUrl}${endpoint}`;
+            //add ${baseUrl} prior to ${endpoint} for burl cases
+            const url = `${endpoint}`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
-                    'Origin': 'http://localhost:8080',
+                    //ensure your origin is correctly set
+                    'Origin': 'http://asbedb.github.io/Drive-ShiftSavvy/',
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
