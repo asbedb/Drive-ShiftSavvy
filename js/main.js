@@ -1,299 +1,307 @@
-    /*
-              ___.              .______.            .___                /\  _______________   ________    _____  
-_____    _____\_ |__   ____   __| _/\_ |__        __| _/_______  __    / /  \_____  \   _  \  \_____  \  /  |  | 
-\__  \  /  ___/| __ \_/ __ \ / __ |  | __ \      / __ |/ __ \  \/ /   / /    /  ____/  /_\  \  /  ____/ /   |  |_
- / __ \_\___ \ | \_\ \  ___// /_/ |  | \_\ \    / /_/ \  ___/\   /   / /    /       \  \_/   \/       \/    ^   /
-(____  /____  >|___  /\___  >____ |  |___  / /\ \____ |\___  >\_/   / /     \_______ \_____  /\_______ \____   | 
-     \/     \/     \/     \/     \/      \/  \/      \/    \/       \/              \/     \/         \/    |__| 
-    */
+/* 
+This was my first passion project and initially was committed as one file.
+I revisit it every so often and refactor based on new knowledge/design skills. 
 
-document.addEventListener('DOMContentLoaded', function () {
-    // Base URL for your Cross Origin Server parsing prior to API Call (Used for local hosting primarily)
-    const baseUrl = 'https://cors-anywhere.herokuapp.com/'; 
+29/05/2025 - Currently refactoring this to match a broader system design pattern with components broken up. 
 
-    //base constants for vehicle input form
-    const yearSelect = document.getElementById('vehicle-year');
-    const makeSelect = document.getElementById('vehicle-make');
-    const modelSelect = document.getElementById('vehicle-model');
-    const variantSelect = document.getElementById('vehicle-variant');
-    const measureSelectDistance = document.getElementById('vehicle-fuel-measurement');
-    const carSection = document.getElementById('car-info');
-    const carSelectButton = document.getElementById('car-select');
-    const simulateButton = document.getElementById('simulate');
+*/
+
+//js/main.js - the main entry point for our application.
+import { getVehicleData } from './api/fuelEconomyApi.js';
+import {
+    yearSelect,
+    makeSelect,
+    modelSelect,
+    variantSelect,
+    measureSelectDistance,
+    carSection,
+    carSelectButton,
+    simulateButton,
+    hoursLabel,
+    breakLabel,
+    faresLabel,
+    distanceLabel,
+    grossLabel,
+    expenseLabel,
+    netLabel
+} from './constants/selectors.js';
 
 
-    //base variables for simulation labels
-    let hoursLabel = document.getElementById('total-hours');
-    let breakLabel = document.getElementById('total-breaks');
-    let faresLabel = document.getElementById('total-fares');
-    let distanceLabel = document.getElementById('total-travel');
-    let grossLabel = document.getElementById('total-earnings-gross');
-    let expenseLabel = document.getElementById('total-expenses');
-    let netLabel =  document.getElementById('total-earnings-net');
+document.addEventListener("DOMContentLoaded", function () {
 
-    function parseXML(xmlString) {
-        const parser = new DOMParser();
-        return parser.parseFromString(xmlString, 'text/xml');
+  async function populateYearDropDown() {
+    const years = await getVehicleData("years");
+    if (years) {
+      yearSelect.innerHTML = '<option value="">Select a Year</option>';
+      years.forEach((year) => {
+        yearSelect.innerHTML += `<option value="${year.value}">${year.text}</option>`;
+      });
+    } else {
+      console.error("Failed to load years.");
+    }
+  }
+
+  async function populateMakeDropDown(year) {
+    makeSelect.innerHTML = '<option value="">Select a Make</option>';
+    modelSelect.innerHTML = '<option value="">Select a Model</option>';
+    variantSelect.innerHTML = '<option value="">Select a Variant</option>';
+    if (!year) return;
+
+    const makes = await getVehicleData("makes", { year });
+    if (makes) {
+      makes.forEach((make) => {
+        makeSelect.innerHTML += `<option value="${make.value}">${make.text}</option>`;
+      });
+    } else {
+      console.error(`Failed to load makes for year ${year}.`);
+      alert(`Error loading makes for ${year}. Please try again.`);
+    }
+  }
+
+  async function populateModelDropDown(make, year) {
+    modelSelect.innerHTML = '<option value="">Select a Model</option>';
+    variantSelect.innerHTML = '<option value="">Select a Variant</option>';
+    if (!make || !year) return;
+    const models = await getVehicleData("models", { make, year });
+    if (models) {
+      models.forEach((model) => {
+        modelSelect.innerHTML += `<option value ="${model.value}">${model.text}</option>`;
+      });
+    }
+  }
+
+  async function populateVariantDropDown(model, make, year) {
+    variantSelect.innerHTML = '<option value="">Select a Variant</option>';
+    if (!model || !make || !year) return;
+    const variants = await getVehicleData("variants", { model, make, year });
+    if (variants) {
+      variants.forEach((variant) => {
+        variantSelect.innerHTML += `<option value="${variant.value}">${variant.text}</option>`;
+      });
+    }
+  }
+
+  async function handleSelectCar() {
+    const selectedVariantID = variantSelect.value;
+    if (!selectedVariantID) {
+      alert("Please select a vehicle variant.");
+      return null;
     }
 
-    function parseXMLToArray(xmlDoc, tagName) {
-        const items = xmlDoc.getElementsByTagName(tagName);
-        return Array.from(items).map(item => ({
-            value: item.getElementsByTagName('value')[0].textContent,
-            text: item.getElementsByTagName('text')[0].textContent
-        }));
-    }
-
-    //when creating local save reload/reset will delete/reset local save.
-    function reload(){
-        location.reload();
-    }
-
-    //to add a functionality here where it will try local storage first
-    async function fetchData(endpoint) {
-        try {
-            //add ${baseUrl} prior to ${endpoint} for burl cases
-            const url = `${baseUrl}${endpoint}`;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    //ensure your origin is correctly set
-                    // 'Origin': 'http://asbedb.github.io/Drive-ShiftSavvy/',
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-            return response.text(); 
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    }
-
-    async function populateYears() {
-        const endpoint = 'https://www.fueleconomy.gov/ws/rest/vehicle/menu/year';
-        const xmlString = await fetchData(endpoint);
-        const xmlDoc = parseXML(xmlString);
-        const years = parseXMLToArray(xmlDoc, 'menuItem');
-        yearSelect.innerHTML = '<option value="">Select a Year</option>';
-        years.forEach(year => {
-            yearSelect.innerHTML += `<option value="${year.value}">${year.text}</option>`;
-        });
-    }
-
-    async function populateMakes(year) {
-        const endpoint = `https://www.fueleconomy.gov/ws/rest/vehicle/menu/make?year=${year}`;
-        const xmlString = await fetchData(endpoint);
-        const xmlDoc = parseXML(xmlString);
-        const makes = parseXMLToArray(xmlDoc, 'menuItem');
-        makeSelect.innerHTML = '<option value="">Select a Make</option>';
-        makes.forEach(make => {
-            makeSelect.innerHTML += `<option value="${make.value}">${make.text}</option>`;
-        });
-        modelSelect.innerHTML = '<option value="">Select a Model</option>';
-        variantSelect.innerHTML = '<option value="">Select a Variant</option>';
-    }
-
-    async function populateModels(make, year) {
-        const endpoint = `https://www.fueleconomy.gov/ws/rest/vehicle/menu/model?year=${year}&make=${make}`;
-        const xmlString = await fetchData(endpoint);
-        const xmlDoc = parseXML(xmlString);
-        const models = parseXMLToArray(xmlDoc, 'menuItem');
-        modelSelect.innerHTML = '<option value="">Select a Model</option>';
-        models.forEach(model => {
-            modelSelect.innerHTML += `<option value="${model.value}">${model.text}</option>`;
-        });
-        variantSelect.innerHTML = '<option value="">Select a Variant</option>';
-    }
-
-    
-    async function populateVariants(model, make, year) {
-        const endpoint = `https://www.fueleconomy.gov/ws/rest/vehicle/menu/options?year=${year}&make=${make}&model=${model}`;
-        const xmlString = await fetchData(endpoint);
-        const xmlDoc = parseXML(xmlString);
-        const variants = parseXMLToArray(xmlDoc, 'menuItem');
-        variantSelect.innerHTML = '<option value="">Select a Variant</option>';
-        variants.forEach(variant => {
-            variantSelect.innerHTML += `<option value="${variant.value}">${variant.text}</option>`;
-        });
-    }
-
-    async function handleSelectCar(){
-        const selectedVariant = variantSelect.value;
-        if(selectedVariant){
-            const endpoint = `https://www.fueleconomy.gov/ws/rest/vehicle/${selectedVariant}`;
-            const xmlString = await fetchData(endpoint);
-            const xmlDoc = parseXML(xmlString);
-            const make = xmlDoc.querySelector('make').textContent;
-            const model = xmlDoc.querySelector('model').textContent;
-            const year = xmlDoc.querySelector('year').textContent;
-            const variant = xmlDoc.querySelector('trany').textContent;
-            const fueltype = xmlDoc.querySelector('fuelType').textContent;
-            const cylinders = xmlDoc.querySelector('cylinders').textContent;
-            let cityMPG = xmlDoc.querySelector('city08').textContent;
-            cityMPG = parseInt(cityMPG, 10).toFixed(2);
-
-            
-            if(measureSelectDistance.value == "KPL"){
-                cityMPG = parseInt(cityMPG / 2.352, 10);
-                cityMPG = cityMPG.toFixed(2);
-            }
-            
-
-            carSection.innerHTML = `
-            <h3>Your Selected Car:</strong> ${year} ${make} ${model} ${variant}</h3>
-            <p><strong>Fuel Type:</strong> ${fueltype}<br>
-            <strong>Cylinders:</strong> V${cylinders}<br>
-            <strong>${measureSelectDistance.value} (City Driving):</strong> ${cityMPG}<br>
-            <button id="reset" type="button">Reset</button>
+    const vehicleDetails = await getVehicleData("details", {
+      variantId: selectedVariantID,
+    });
+    if (vehicleDetails) {
+      let cityMPG = vehicleDetails.cityMPG;
+      if (measureSelectDistance.value === "KPL") {
+        cityMPG = (cityMPG / 2.352).toFixed(2);
+      } else {
+        cityMPG = cityMPG.toFixed(2);
+      }
+      carSection.innerHTML = `
+                <h3>Your Selected Car:</strong> ${vehicleDetails.year} ${vehicleDetails.make} ${vehicleDetails.model} ${vehicleDetails.variant}</h3>
+                <p><strong>Fuel Type:</strong> ${vehicleDetails.fuelType}<br>
+                <strong>Cylinders:</strong> V${vehicleDetails.cylinders}<br>
+                <strong>${measureSelectDistance.value} (City Driving):</strong> ${cityMPG}<br>
+                <button id="reset" type="button">Reset</button>
             `;
-            document.getElementById('reset').addEventListener('click', reload);
-            return cityMPG;
-        }else{
-            console.log(variantSelect.value);
-            alert("Please Update Car Details");
-        }
-        
+      // Assuming 'reload' is a global or imported helper function
+      document
+        .getElementById("reset")
+        .addEventListener("click", () => location.reload()); // Use location.reload() for full page reload
+      return parseFloat(cityMPG); // Return parsed float
+    } else {
+      alert("Failed to retrieve car details. Please try again.");
+      return null;
     }
+  }
 
-    function calculateShiftHours(){
-        const shiftStart = document.getElementById('shift-start').value;
-        const shiftEnd = document.getElementById('shift-end').value;
-        let shiftBreak = document.getElementById('shift-break').value;
-        if(!shiftStart || !shiftEnd){
-            alert("Please Enter a Shift Start and End Time");
-            console.log('Shift Start:', shiftStart);
-            console.log('Shift End:', shiftEnd);
-        }else{
-            const start = new Date(`1970-01-01T${shiftStart}:00`);
-            const end = new Date(`1970-01-01T${shiftEnd}:00`);
-            let difference = end - start;
-            if (difference < 0) {
-                difference += 24 * 60 * 60 * 1000; 
-            }
-            let shiftHours = difference / (1000 * 60 * 60);
-            if(shiftHours >= 8 && shiftBreak < 30 || shiftHours >= 16 && shiftBreak < 60){
-                shiftBreak = Math.floor(shiftHours / 7.5) * 30;
-            }
-            shiftHours = Math.round(shiftHours);
-            return {shiftHours, shiftBreak};
-        }              
+  function calculateShiftHours() {
+    const shiftStart = document.getElementById("shift-start").value;
+    const shiftEnd = document.getElementById("shift-end").value;
+    let shiftBreak = document.getElementById("shift-break").value;
+    if (!shiftStart || !shiftEnd) {
+      alert("Please Enter a Shift Start and End Time");
+      console.log("Shift Start:", shiftStart);
+      console.log("Shift End:", shiftEnd);
+    } else {
+      const start = new Date(`1970-01-01T${shiftStart}:00`);
+      const end = new Date(`1970-01-01T${shiftEnd}:00`);
+      let difference = end - start;
+      if (difference < 0) {
+        difference += 24 * 60 * 60 * 1000;
+      }
+      let shiftHours = difference / (1000 * 60 * 60);
+      if (
+        (shiftHours >= 8 && shiftBreak < 30) ||
+        (shiftHours >= 16 && shiftBreak < 60)
+      ) {
+        shiftBreak = Math.floor(shiftHours / 7.5) * 30;
+      }
+      shiftHours = Math.round(shiftHours);
+      return { shiftHours, shiftBreak };
     }
+  }
 
-    function shiftTypeFunction(){
-        const shiftType = document.getElementById('shift-type').value;
-        let jobsPerHour;
-        let distancePerJobMiles;
-        let payperJob;
-        //Type of Shift checker
-        if(shiftType == "rideshare"){
-            jobsPerHour = 0.9;
-            distancePerJobMiles = 6.2;
-            payperJob = 30.50;
-        }else if(shiftType == "food-delivery"){
-            jobsPerHour = 1.5;
-            distancePerJobMiles = 3.1;
-            payperJob = 15.00;
-        }
-        console.log(jobsPerHour + " " + distancePerJobMiles +" " + payperJob );
-        return {
-            jobsPerHour,
-            distancePerJobMiles,
-            payperJob
-        };  
+  function shiftTypeFunction() {
+    const shiftType = document.getElementById("shift-type").value;
+    let jobsPerHour;
+    let distancePerJobMiles;
+    let payperJob;
+    //Type of Shift checker
+    if (shiftType == "rideshare") {
+      jobsPerHour = 0.9;
+      distancePerJobMiles = 6.2;
+      payperJob = 30.5;
+    } else if (shiftType == "food-delivery") {
+      jobsPerHour = 1.5;
+      distancePerJobMiles = 3.1;
+      payperJob = 15.0;
     }
+    console.log(jobsPerHour + " " + distancePerJobMiles + " " + payperJob);
+    return {
+      jobsPerHour,
+      distancePerJobMiles,
+      payperJob,
+    };
+  }
 
-    function calculateDistanceFuelandProfits(rangeOutput, shiftHours, shiftBreak, jobsPerHour, distancePerJobMiles, payperJob){
-        const fuelPrice = document.getElementById('shift-fuel').value;
-        const shiftDay = document.getElementById('shift-day').value;
-        const shiftUnit = document.getElementById('shift-unit').value
-        let totalDistance = 0;
-        let distanceUnit = "Mi";
-        let totalJobs = Math.round((shiftHours - (shiftBreak / 60)) * jobsPerHour);
-        //Rate Multipliers
-        if (shiftDay === "weekend-rate") {
-            totalJobs *= 1.25;
-            payperJob *= 1.25;
-        }
-        //Unit Conversions
-        if(shiftUnit === "unit-kilometers"){
-            totalDistance = (totalJobs * distancePerJobMiles) * 1.609;
-            distanceUnit = "Km"
-        } else{
-            totalDistance = totalJobs * distancePerJobMiles;
-            distanceUnit = "Mi"
-        }
-        const fuelExpense = (totalDistance / rangeOutput) * fuelPrice;
-        const grossIncome = totalJobs * payperJob;
-        const netIncome = grossIncome - fuelExpense;
-        return {
-            grossIncome: grossIncome.toFixed(2),
-            netIncome: netIncome.toFixed(2),
-            fuelExpense: fuelExpense.toFixed(2),
-            totalJobs,
-            totalDistance: totalDistance.toFixed(2),
-            distanceUnit
-        };  
+  function calculateDistanceFuelandProfits(
+    rangeOutput,
+    shiftHours,
+    shiftBreak,
+    jobsPerHour,
+    distancePerJobMiles,
+    payperJob
+  ) {
+    const fuelPrice = document.getElementById("shift-fuel").value;
+    const shiftDay = document.getElementById("shift-day").value;
+    const shiftUnit = document.getElementById("shift-unit").value;
+    let totalDistance = 0;
+    let distanceUnit = "Mi";
+    let totalJobs = Math.round((shiftHours - shiftBreak / 60) * jobsPerHour);
+    //Rate Multipliers
+    if (shiftDay === "weekend-rate") {
+      totalJobs *= 1.25;
+      payperJob *= 1.25;
     }
-
-    function simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak, distanceUnit){
-        hoursLabel.innerText = shiftHours; 
-        breakLabel.innerText = shiftBreak;
-        faresLabel.innerText = totalJobs;
-        distanceLabel.innerText = totalDistance + " " + distanceUnit;
-        grossLabel.innerText = grossIncome;
-        expenseLabel.innerText = fuelExpense;
-        netLabel.innerText = netIncome;
-        grossLabel.classList.add("profit");
-        expenseLabel.classList.add("loss");
-        netIncome <= 0 ? netLabel.classList.add("loss") : netLabel.classList.add("profit");
+    //Unit Conversions
+    if (shiftUnit === "unit-kilometers") {
+      totalDistance = totalJobs * distancePerJobMiles * 1.609;
+      distanceUnit = "Km";
+    } else {
+      totalDistance = totalJobs * distancePerJobMiles;
+      distanceUnit = "Mi";
     }
+    const fuelExpense = (totalDistance / rangeOutput) * fuelPrice;
+    const grossIncome = totalJobs * payperJob;
+    const netIncome = grossIncome - fuelExpense;
+    return {
+      grossIncome: grossIncome.toFixed(2),
+      netIncome: netIncome.toFixed(2),
+      fuelExpense: fuelExpense.toFixed(2),
+      totalJobs,
+      totalDistance: totalDistance.toFixed(2),
+      distanceUnit,
+    };
+  }
 
-    //make a save functionality
-    function saveDetails(){
-        //TO-DO Next
+  function simulateShift(
+    grossIncome,
+    netIncome,
+    fuelExpense,
+    totalJobs,
+    totalDistance,
+    shiftHours,
+    shiftBreak,
+    distanceUnit
+  ) {
+    hoursLabel.innerText = shiftHours;
+    breakLabel.innerText = shiftBreak;
+    faresLabel.innerText = totalJobs;
+    distanceLabel.innerText = totalDistance + " " + distanceUnit;
+    grossLabel.innerText = grossIncome;
+    expenseLabel.innerText = fuelExpense;
+    netLabel.innerText = netIncome;
+    grossLabel.classList.add("profit");
+    expenseLabel.classList.add("loss");
+    netIncome <= 0
+      ? netLabel.classList.add("loss")
+      : netLabel.classList.add("profit");
+  }
+
+  //make a save functionality
+  function saveDetails() {
+    //TO-DO Next
+  }
+
+  simulateButton.addEventListener("click", async () => {
+    const rangeOutput = await handleSelectCar();
+    if (rangeOutput !== null) {
+      const { shiftHours, shiftBreak } = calculateShiftHours();
+      const { jobsPerHour, distancePerJobMiles, payperJob } =
+        shiftTypeFunction();
+      if (
+        shiftHours !== null &&
+        shiftBreak !== null &&
+        jobsPerHour !== null &&
+        distancePerJobMiles !== null &&
+        payperJob !== null
+      ) {
+        // Calculate distance, fuel, and profits
+        const {
+          grossIncome,
+          netIncome,
+          fuelExpense,
+          totalJobs,
+          totalDistance,
+          distanceUnit,
+        } = calculateDistanceFuelandProfits(
+          rangeOutput,
+          shiftHours,
+          shiftBreak,
+          jobsPerHour,
+          distancePerJobMiles,
+          payperJob
+        );
+        simulateShift(
+          grossIncome,
+          netIncome,
+          fuelExpense,
+          totalJobs,
+          totalDistance,
+          shiftHours,
+          shiftBreak,
+          distanceUnit
+        );
+      } else {
+        alert("Something Went Wrong - Please Try Again");
+        console.log(error);
+      }
     }
+  });
 
-    simulateButton.addEventListener('click', async () => {
-        const rangeOutput = await handleSelectCar(); 
-        if (rangeOutput !== null) {
-            const { shiftHours, shiftBreak } = calculateShiftHours();
-            const { jobsPerHour, distancePerJobMiles, payperJob } = shiftTypeFunction();
-            if (shiftHours !== null && shiftBreak !== null && jobsPerHour !== null && distancePerJobMiles !== null && payperJob !== null) {
-                // Calculate distance, fuel, and profits
-                const { grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, distanceUnit } = calculateDistanceFuelandProfits(rangeOutput, shiftHours, shiftBreak, jobsPerHour, distancePerJobMiles, payperJob);
-                simulateShift(grossIncome, netIncome, fuelExpense, totalJobs, totalDistance, shiftHours, shiftBreak, distanceUnit);
-            } else {
-                alert("Something Went Wrong - Please Try Again");
-                console.log(error);
-            }
-        }
-    });
+  carSelectButton.addEventListener("click", handleSelectCar);
 
-    carSelectButton.addEventListener("click", handleSelectCar);
+  // Populate vehicle years on page load
+  populateYearDropDown();
 
+  // Event listeners to handle user selections
+  yearSelect.addEventListener("change", (event) => {
+    const selectedYear = event.target.value;
+    populateMakeDropDown(selectedYear);
+  });
 
-    // Populate vehicle years on page load
-    populateYears();
+  makeSelect.addEventListener("change", (event) => {
+    const selectedMake = event.target.value;
+    const selectedYear = yearSelect.value;
+    populateModelDropDown(selectedMake, selectedYear);
+  });
 
-    // Event listeners to handle user selections
-    yearSelect.addEventListener('change', (event) => {
-        const selectedYear = event.target.value;
-        populateMakes(selectedYear);
-    });
-    
-    makeSelect.addEventListener('change', (event) => {
-        const selectedMake = event.target.value;
-        const selectedYear = yearSelect.value;
-        populateModels(selectedMake, selectedYear);
-    });
-
-    modelSelect.addEventListener('change', (event) => {
-        const selectedModel = event.target.value;
-        const selectedMake = makeSelect.value;
-        const selectedYear = yearSelect.value;
-        populateVariants(selectedModel, selectedMake, selectedYear);
-    });
+  modelSelect.addEventListener("change", (event) => {
+    const selectedModel = event.target.value;
+    const selectedMake = makeSelect.value;
+    const selectedYear = yearSelect.value;
+    populateVariantDropDown(selectedModel, selectedMake, selectedYear);
+  });
 });
