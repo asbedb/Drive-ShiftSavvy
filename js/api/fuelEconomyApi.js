@@ -1,7 +1,7 @@
 // js/api/fuelEconomyApi.js
 import { parseXML, parseXMLToArray } from "../utils/domParser.js";
 
-const CORS_PROXY_URL = "http://localhost:8080/";
+const CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
 const BASE_API_URL = "https://www.fueleconomy.gov/ws/rest/vehicle";
 
 export async function fetchData(endpoint) {
