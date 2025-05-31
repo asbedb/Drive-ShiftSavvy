@@ -7,28 +7,26 @@ I revisit it every so often and refactor based on new knowledge/design skills.
 */
 
 //js/main.js - the main entry point for our application.
-import { getVehicleData } from './api/fuelEconomyApi.js';
+import { getVehicleData } from "./api/fuelEconomyApi.js";
 import {
-    yearSelect,
-    makeSelect,
-    modelSelect,
-    variantSelect,
-    measureSelectDistance,
-    carSection,
-    carSelectButton,
-    simulateButton,
-    hoursLabel,
-    breakLabel,
-    faresLabel,
-    distanceLabel,
-    grossLabel,
-    expenseLabel,
-    netLabel
-} from './constants/selectors.js';
-
+  yearSelect,
+  makeSelect,
+  modelSelect,
+  variantSelect,
+  measureSelectDistance,
+  carSection,
+  carSelectButton,
+  simulateButton,
+  hoursLabel,
+  breakLabel,
+  faresLabel,
+  distanceLabel,
+  grossLabel,
+  expenseLabel,
+  netLabel,
+} from "./constants/selectors.js";
 
 document.addEventListener("DOMContentLoaded", function () {
-
   async function populateYearDropDown() {
     const years = await getVehicleData("years");
     if (years) {
