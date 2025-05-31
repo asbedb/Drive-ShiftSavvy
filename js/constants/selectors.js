@@ -18,3 +18,12 @@ export const distanceLabel = document.getElementById("total-travel");
 export const grossLabel = document.getElementById("total-earnings-gross");
 export const expenseLabel = document.getElementById("total-expenses"); 
 export const netLabel = document.getElementById("total-earnings-net");
+
+// Calculator Selectors
+export const shiftStartInput = document.getElementById("shift-start");
+export const shiftEndInput = document.getElementById("shift-end");
+export const shiftBreakInput = document.getElementById("shift-break");
+export const shiftTypeInput = document.getElementById("shift-type");
+export const fuelPriceInput = document.getElementById("shift-fuel");
+export const shiftDayInput = document.getElementById("shift-day");
+export const shiftUnitInput = document.getElementById("shift-unit");
