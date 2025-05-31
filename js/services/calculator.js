@@ -25,7 +25,7 @@ import {
   MILLISECONDS_PER_HOUR, 
   MINUTES_PER_HOUR,
   HOURS_PER_DAY
-} from "../constants/definitions";
+} from "../constants/definitions.js";
 
 export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
   if (!shiftStart || !shiftEnd) {

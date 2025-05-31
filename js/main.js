@@ -24,7 +24,19 @@ import {
   grossLabel,
   expenseLabel,
   netLabel,
+  shiftStartInput,
+  shiftEndInput,
+  shiftBreakInput,
+  shiftTypeInput,
+  shiftDayInput,
+  shiftUnitInput,
+  fuelPriceInput,
 } from "./constants/selectors.js";
+import {
+  calculateShiftHours,
+  shiftEstimates,
+  calculateDistanceFuelandProfits,
+} from "./services/calculator.js";
 
 document.addEventListener("DOMContentLoaded", function () {
   async function populateYearDropDown() {
@@ -103,105 +115,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 <strong>${measureSelectDistance.value} (City Driving):</strong> ${cityMPG}<br>
                 <button id="reset" type="button">Reset</button>
             `;
-      // Assuming 'reload' is a global or imported helper function
-      document
-        .getElementById("reset")
-        .addEventListener("click", () => location.reload()); // Use location.reload() for full page reload
-      return parseFloat(cityMPG); // Return parsed float
+      const resetButton = document.getElementById("reset");
+      if (resetButton) {
+        resetButton.addEventListener("click", () => location.reload());
+      } else {
+        console.error("Reset button not found after rendering car details.");
+      }
+      return parseFloat(cityMPG);
     } else {
       alert("Failed to retrieve car details. Please try again.");
       return null;
     }
-  }
-
-  function calculateShiftHours() {
-    const shiftStart = document.getElementById("shift-start").value;
-    const shiftEnd = document.getElementById("shift-end").value;
-    let shiftBreak = document.getElementById("shift-break").value;
-    if (!shiftStart || !shiftEnd) {
-      alert("Please Enter a Shift Start and End Time");
-      console.log("Shift Start:", shiftStart);
-      console.log("Shift End:", shiftEnd);
-    } else {
-      const start = new Date(`1970-01-01T${shiftStart}:00`);
-      const end = new Date(`1970-01-01T${shiftEnd}:00`);
-      let difference = end - start;
-      if (difference < 0) {
-        difference += 24 * 60 * 60 * 1000;
-      }
-      let shiftHours = difference / (1000 * 60 * 60);
-      if (
-        (shiftHours >= 8 && shiftBreak < 30) ||
-        (shiftHours >= 16 && shiftBreak < 60)
-      ) {
-        shiftBreak = Math.floor(shiftHours / 7.5) * 30;
-      }
-      shiftHours = Math.round(shiftHours);
-      return { shiftHours, shiftBreak };
-    }
-  }
-
-  function shiftTypeFunction() {
-    const shiftType = document.getElementById("shift-type").value;
-    let jobsPerHour;
-    let distancePerJobMiles;
-    let payperJob;
-    //Type of Shift checker
-    if (shiftType == "rideshare") {
-      jobsPerHour = 0.9;
-      distancePerJobMiles = 6.2;
-      payperJob = 30.5;
-    } else if (shiftType == "food-delivery") {
-      jobsPerHour = 1.5;
-      distancePerJobMiles = 3.1;
-      payperJob = 15.0;
-    }
-    console.log(jobsPerHour + " " + distancePerJobMiles + " " + payperJob);
-    return {
-      jobsPerHour,
-      distancePerJobMiles,
-      payperJob,
-    };
-  }
-
-  function calculateDistanceFuelandProfits(
-    rangeOutput,
-    shiftHours,
-    shiftBreak,
-    jobsPerHour,
-    distancePerJobMiles,
-    payperJob
-  ) {
-    const fuelPrice = document.getElementById("shift-fuel").value;
-    const shiftDay = document.getElementById("shift-day").value;
-    const shiftUnit = document.getElementById("shift-unit").value;
-    let totalDistance = 0;
-    let distanceUnit = "Mi";
-    let totalJobs = Math.round((shiftHours - shiftBreak / 60) * jobsPerHour);
-    //Rate Multipliers
-    if (shiftDay === "weekend-rate") {
-      totalJobs *= 1.25;
-      payperJob *= 1.25;
-    }
-    //Unit Conversions
-    if (shiftUnit === "unit-kilometers") {
-      totalDistance = totalJobs * distancePerJobMiles * 1.609;
-      distanceUnit = "Km";
-    } else {
-      totalDistance = totalJobs * distancePerJobMiles;
-      distanceUnit = "Mi";
-    }
-    const fuelExpense = (totalDistance / rangeOutput) * fuelPrice;
-    const grossIncome = totalJobs * payperJob;
-    const netIncome = grossIncome - fuelExpense;
-    return {
-      grossIncome: grossIncome.toFixed(2),
-      netIncome: netIncome.toFixed(2),
-      fuelExpense: fuelExpense.toFixed(2),
-      totalJobs,
-      totalDistance: totalDistance.toFixed(2),
-      distanceUnit,
-    };
   }
 
   function simulateShift(
@@ -236,9 +160,15 @@ document.addEventListener("DOMContentLoaded", function () {
   simulateButton.addEventListener("click", async () => {
     const rangeOutput = await handleSelectCar();
     if (rangeOutput !== null) {
-      const { shiftHours, shiftBreak } = calculateShiftHours();
-      const { jobsPerHour, distancePerJobMiles, payperJob } =
-        shiftTypeFunction();
+      const shiftHours = calculateShiftHours(
+        shiftStartInput.value,
+        shiftEndInput.value,
+        shiftBreakInput.value
+      );
+      const { jobsPerHour, distancePerJobMiles, payperJob } = shiftEstimates(
+        shiftTypeInput.value
+      );
+      const shiftBreak = shiftBreakInput.value;
       if (
         shiftHours !== null &&
         shiftBreak !== null &&
