@@ -1,5 +1,32 @@
 // services/calculator.js
 
+import {
+  MILES_LABEL,
+  KILOMETERS_LABEL,
+  KILOMETER_SELECTOR_LABEL,
+  MILES_TO_KILOMETERS_MULTIPLIER,
+  WEEKEND_SELECTOR_LABEL,
+  WEEKEND_JOBS_MULTIPLIER,
+  WEEKEND_PAY_MULTIPLIER,
+  RIDESHARE_SELECTOR_LABEL,
+  RIDESHARE_JOBS_PER_HOUR,
+  RIDESHARE_DISTANCE_PER_JOB_MILES,
+  RIDESHARE_PAY_PER_JOB,
+  FOOD_DELIVERY_SELECTOR_LABEL,
+  FOOD_DELIVERY_JOBS_PER_HOUR,
+  FOOD_DELIVERY_DISTANCE_PER_JOB_MILES,
+  FOOD_DELIVERY_PAY_PER_JOB,
+  LOWER_LIMIT_SHIFT_HOURS_FOR_BREAK,
+  UPPER_LIMIT_SHIFT_HOURS_FOR_BREAK,
+  LOWER_LIMIT_MANDATORY_BREAK_MINUTES,
+  UPPER_LIMIT_MANDATORY_BREAK_MINUTES,
+  FULL_WORKING_DAY_HOURS,
+  MINIMUM_BREAK_PER_WORKING_DAY_MINUTES,
+  MILLISECONDS_PER_HOUR, 
+  MINUTES_PER_HOUR,
+  HOURS_PER_DAY
+} from "../constants/definitions";
+
 export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
   if (!shiftStart || !shiftEnd) {
     alert("Please Enter a Shift Start and End Time");
@@ -8,15 +35,19 @@ export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
     const end = new Date(`1970-01-01T${shiftEnd}:00`);
     let difference = end - start;
     if (difference < 0) {
-      difference += 24 * 60 * 60 * 1000;
+      difference += HOURS_PER_DAY * MILLISECONDS_PER_HOUR;
     }
-    let shiftHours = difference / (1000 * 60 * 60);
+    let shiftHours = difference /  MILLISECONDS_PER_HOUR;
     //Forced Break calculations to promote healthy driving habits
     if (
-      (shiftHours >= 8 && shiftBreak < 30) ||
-      (shiftHours >= 16 && shiftBreak < 60)
+      (shiftHours >= LOWER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
+        shiftBreak < LOWER_LIMIT_MANDATORY_BREAK_MINUTES) ||
+      (shiftHours >= UPPER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
+        shiftBreak < UPPER_LIMIT_MANDATORY_BREAK_MINUTES)
     ) {
-      shiftBreak = Math.floor(shiftHours / 7.5) * 30;
+      shiftBreak =
+        Math.floor(shiftHours / FULL_WORKING_DAY_HOURS) *
+        MINIMUM_BREAK_PER_WORKING_DAY_MINUTES;
     }
     shiftHours = Math.round(shiftHours - shiftBreak);
     return shiftHours;
@@ -25,17 +56,17 @@ export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
 
 export function shiftEstimates(shiftType) {
   //Type of Shift checker
-  if (shiftType == "rideshare") {
+  if (shiftType == RIDESHARE_SELECTOR_LABEL) {
     return {
-      jobsPerHour: 0.9,
-      distancePerJobMiles: 6.2,
-      payperJob: 30.5,
+      jobsPerHour: RIDESHARE_JOBS_PER_HOUR,
+      distancePerJobMiles: RIDESHARE_DISTANCE_PER_JOB_MILES,
+      payperJob: RIDESHARE_PAY_PER_JOB,
     };
-  } else if (shiftType == "food-delivery") {
+  } else if (shiftType == FOOD_DELIVERY_SELECTOR_LABEL) {
     return {
-      jobsPerHour: 1.5,
-      distancePerJobMiles: 3.1,
-      payperJob: 15.0,
+      jobsPerHour: FOOD_DELIVERY_JOBS_PER_HOUR,
+      distancePerJobMiles: FOOD_DELIVERY_DISTANCE_PER_JOB_MILES,
+      payperJob: FOOD_DELIVERY_PAY_PER_JOB,
     };
   }
 }
@@ -52,20 +83,21 @@ export function calculateDistanceFuelandProfits(
   shiftUnit
 ) {
   let totalDistance = 0;
-  let distanceUnit = "Mi";
-  let totalJobs = Math.round((shiftHours - shiftBreak / 60) * jobsPerHour);
+  let distanceUnit = MILES_LABEL;
+  let totalJobs = Math.round((shiftHours - shiftBreak / MINUTES_PER_HOUR) * jobsPerHour);
   //Rate Multipliers
-  if (shiftDay === "weekend-rate") {
-    totalJobs *= 1.25;
-    payperJob *= 1.25;
+  if (shiftDay === WEEKEND_SELECTOR_LABEL) {
+    totalJobs *= WEEKEND_JOBS_MULTIPLIER;
+    payperJob *= WEEKEND_PAY_MULTIPLIER;
   }
   //Unit Conversions
-  if (shiftUnit === "unit-kilometers") {
-    totalDistance = totalJobs * distancePerJobMiles * 1.609;
-    distanceUnit = "Km";
+  if (shiftUnit === KILOMETER_SELECTOR_LABEL) {
+    totalDistance =
+      totalJobs * distancePerJobMiles * MILES_TO_KILOMETERS_MULTIPLIER;
+    distanceUnit = KILOMETERS_LABEL;
   } else {
     totalDistance = totalJobs * distancePerJobMiles;
-    distanceUnit = "Mi";
+    distanceUnit = MILES_LABEL;
   }
   const fuelExpense = (totalDistance / rangeOutput) * fuelPrice;
   const grossIncome = totalJobs * payperJob;
