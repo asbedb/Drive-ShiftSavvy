@@ -6,6 +6,9 @@ export const KILOMETERS_LABEL = "Km";
 export const KILOMETER_SELECTOR_LABEL = "unit-kilometers";
 export const MILES_TO_KILOMETERS_MULTIPLIER = 1.609;
 export const MILLISECONDS_PER_HOUR = 3600000;
+export const MILLISECONDS_PER_MINUTE = 60000;
+export const MILLISECONDS_PER_SECOND = 1000; 
+export const SECONDS_PER_MINUTE = 60;
 export const MINUTES_PER_HOUR = 60;
 export const HOURS_PER_DAY = 24;
 

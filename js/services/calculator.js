@@ -38,6 +38,7 @@ export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
       difference += HOURS_PER_DAY * MILLISECONDS_PER_HOUR;
     }
     let shiftHours = difference /  MILLISECONDS_PER_HOUR;
+    let shiftBreakInHours = shiftBreak / MINUTES_PER_HOUR;
     //Forced Break calculations to promote healthy driving habits
     if (
       (shiftHours >= LOWER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
@@ -45,12 +46,12 @@ export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
       (shiftHours >= UPPER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
         shiftBreak < UPPER_LIMIT_MANDATORY_BREAK_MINUTES)
     ) {
-      shiftBreak =
-        Math.floor(shiftHours / FULL_WORKING_DAY_HOURS) *
+      const mandatoryBreakInMinutes = Math.floor(shiftHours / FULL_WORKING_DAY_HOURS) *
         MINIMUM_BREAK_PER_WORKING_DAY_MINUTES;
+      shiftBreakInHours = mandatoryBreakInMinutes / MINUTES_PER_HOUR;
     }
-    shiftHours = Math.round(shiftHours - shiftBreak);
-    return shiftHours;
+    shiftHours = shiftHours - shiftBreakInHours;
+    return shiftHours.toFixed(2);
   }
 }
 

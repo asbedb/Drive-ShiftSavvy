@@ -169,6 +169,18 @@ document.addEventListener("DOMContentLoaded", function () {
         shiftTypeInput.value
       );
       const shiftBreak = shiftBreakInput.value;
+      // Simulation Variables
+      console.log(`
+        Range Output: ${rangeOutput}\n
+        Shift Start: ${shiftStartInput.value}\n
+        Shit End: ${shiftEndInput.value}\n
+        Shift Break: ${shiftBreakInput.value}
+        Shit Type: ${shiftTypeInput.value}
+        Shit Hours = ${shiftHours}\n
+        Jobs Per Hour: ${jobsPerHour}
+        Distance Per Job: ${distancePerJobMiles}\n
+        Pay Per Job: ${payperJob}\n
+        `);
       if (
         shiftHours !== null &&
         shiftBreak !== null &&
