@@ -33,11 +33,7 @@ This application provides an intuitive interface to input vehicle details, selec
 
 ## Code Structure
 
-- **index.html**: The main HTML file that includes the structure of the web application.
-- **css/style.css**: The stylesheet for application styling.
-- **js/main.js**: The main JavaScript file containing the logic for vehicle data fetching, shift calculation, and DOM manipulation.
-- **server.js**: The server configuration file for cors-anywhere to assist with cross origin posting when running locally.
-- **README.md**: The file you are currently reading.
+I have recently refactored this project to align to clean code practices, this was a great way for me to practice refactoring and applying my new founds skills in a useful way. The single JS file has now been broken into it's smaller components making maintenance and contributions to the project much easier. 
 
 ## Contributing
 I welcome contributions to improve this project. Please refer to our contributing guidelines for more information on how to get involved.
