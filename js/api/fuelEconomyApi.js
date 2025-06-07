@@ -4,6 +4,16 @@ import { parseXML, parseXMLToArray } from "../utils/domParser.js";
 const CORS_PROXY_URL = "https://cors-anywhere.herokuapp.com/";
 const BASE_API_URL = "https://www.fueleconomy.gov/ws/rest/vehicle";
 
+const DUMMY_VEHICLE = {
+  make: "Dummy Lambo",
+  model: "Dummy Model",
+  year: "1990",
+  variant: "Dummy Variant",
+  fuelType: "Diesel",
+  cylinders: "8",
+  cityMPG: 1.25 // Convert to number
+};
+
 export async function fetchData(endpoint) {
   try {
     //add ${CORS_PROXY_URL} prior to ${endpoint} for burl cases
@@ -23,6 +33,7 @@ export async function fetchData(endpoint) {
     return response.text();
   } catch (error) {
     console.error("Error fetching data:", error);
+    return DUMMY_VEHICLE;
   }
 }
 
@@ -56,8 +67,14 @@ export async function getVehicleData(type, params = {}) {
   try {
     const endpoint = buildEndpoint(type, params);
     const xmlString = await fetchData(endpoint);
-    if (!xmlString) return null; // Or return an empty array if type is a list
     const xmlDoc = parseXML(xmlString);
+    if (
+      typeof xmlString === "object" &&
+      xmlString !== null &&
+      xmlStringOrDummy.make === "N/A"
+    ) {
+      return DUMMY_VEHICLE; // Propagate the dummy vehicle if fetchData already decided to return it
+    }
     if (type === "details") {
       try {
         const make = xmlDoc.querySelector("make")?.textContent;
@@ -81,7 +98,6 @@ export async function getVehicleData(type, params = {}) {
           `Error parsing vehicle details for type '${type}':`,
           error
         );
-        return null;
       }
     } else {
       const tagName = "menuItem";
@@ -92,42 +108,5 @@ export async function getVehicleData(type, params = {}) {
       `Error in getFuelEconomyData for type '${type}':`,
       error.message
     );
-    return null; // Ensure a null return on any processing error
-  }
-}
-
-
-async function handleSelectCar() {
-  const selectedVariant = variantSelect.value;
-  if (selectedVariant) {
-    const endpoint = `${BASE_API_URL}${selectedVariant}`;
-    const xmlString = await fetchData(endpoint);
-    const xmlDoc = parseXML(xmlString);
-    const make = xmlDoc.querySelector("make").textContent;
-    const model = xmlDoc.querySelector("model").textContent;
-    const year = xmlDoc.querySelector("year").textContent;
-    const variant = xmlDoc.querySelector("trany").textContent;
-    const fueltype = xmlDoc.querySelector("fuelType").textContent;
-    const cylinders = xmlDoc.querySelector("cylinders").textContent;
-    let cityMPG = xmlDoc.querySelector("city08").textContent;
-    cityMPG = parseInt(cityMPG, 10).toFixed(2);
-
-    if (measureSelectDistance.value == "KPL") {
-      cityMPG = parseInt(cityMPG / 2.352, 10);
-      cityMPG = cityMPG.toFixed(2);
-    }
-
-    carSection.innerHTML = `
-            <h3>Your Selected Car:</strong> ${year} ${make} ${model} ${variant}</h3>
-            <p><strong>Fuel Type:</strong> ${fueltype}<br>
-            <strong>Cylinders:</strong> V${cylinders}<br>
-            <strong>${measureSelectDistance.value} (City Driving):</strong> ${cityMPG}<br>
-            <button id="reset" type="button">Reset</button>
-            `;
-    document.getElementById("reset").addEventListener("click", reload);
-    return cityMPG;
-  } else {
-    console.log(variantSelect.value);
-    alert("Please Update Car Details");
   }
 }

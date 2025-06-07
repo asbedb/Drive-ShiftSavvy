@@ -22,36 +22,44 @@ import {
   UPPER_LIMIT_MANDATORY_BREAK_MINUTES,
   FULL_WORKING_DAY_HOURS,
   MINIMUM_BREAK_PER_WORKING_DAY_MINUTES,
-  MILLISECONDS_PER_HOUR, 
+  MILLISECONDS_PER_HOUR,
   MINUTES_PER_HOUR,
-  HOURS_PER_DAY
+  HOURS_PER_DAY,
 } from "../constants/definitions.js";
+import {
+  convertMillisecondsToDuration,
+  convertUnitToMilliseconds,
+} from "../utils/helpers.js";
 
 export function calculateShiftHours(shiftStart, shiftEnd, shiftBreak) {
   if (!shiftStart || !shiftEnd) {
-    alert("Please Enter a Shift Start and End Time");
+    throw new TypeError("Please Enter a Shift Start and End Time");
   } else {
     const start = new Date(`1970-01-01T${shiftStart}:00`);
     const end = new Date(`1970-01-01T${shiftEnd}:00`);
-    let difference = end - start;
-    if (difference < 0) {
-      difference += HOURS_PER_DAY * MILLISECONDS_PER_HOUR;
+    let totalShiftDurationMs = end - start;
+    let shiftBreakInMs = convertUnitToMilliseconds(shiftBreak, "minute");
+    if (totalShiftDurationMs < 0) {
+      totalShiftDurationMs += HOURS_PER_DAY * MILLISECONDS_PER_HOUR;
     }
-    let shiftHours = difference /  MILLISECONDS_PER_HOUR;
-    let shiftBreakInHours = shiftBreak / MINUTES_PER_HOUR;
-    //Forced Break calculations to promote healthy driving habits
+    const currentShiftHoursDecimal =
+      totalShiftDurationMs / MILLISECONDS_PER_HOUR;
     if (
-      (shiftHours >= LOWER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
+      (currentShiftHoursDecimal >= LOWER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
         shiftBreak < LOWER_LIMIT_MANDATORY_BREAK_MINUTES) ||
-      (shiftHours >= UPPER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
+      (currentShiftHoursDecimal >= UPPER_LIMIT_SHIFT_HOURS_FOR_BREAK &&
         shiftBreak < UPPER_LIMIT_MANDATORY_BREAK_MINUTES)
     ) {
-      const mandatoryBreakInMinutes = Math.floor(shiftHours / FULL_WORKING_DAY_HOURS) *
+      const mandatoryBreakInMinutes =
+        Math.floor(currentShiftHoursDecimal / FULL_WORKING_DAY_HOURS) *
         MINIMUM_BREAK_PER_WORKING_DAY_MINUTES;
-      shiftBreakInHours = mandatoryBreakInMinutes / MINUTES_PER_HOUR;
+      shiftBreakInMs = convertUnitToMilliseconds(
+        mandatoryBreakInMinutes,
+        "minute"
+      );
     }
-    shiftHours = shiftHours - shiftBreakInHours;
-    return shiftHours.toFixed(2);
+    totalShiftDurationMs -= shiftBreakInMs;
+    return convertMillisecondsToDuration(totalShiftDurationMs);
   }
 }
 
@@ -85,7 +93,9 @@ export function calculateDistanceFuelandProfits(
 ) {
   let totalDistance = 0;
   let distanceUnit = MILES_LABEL;
-  let totalJobs = Math.round((shiftHours - shiftBreak / MINUTES_PER_HOUR) * jobsPerHour);
+  let totalJobs = Math.round(
+    (shiftHours - shiftBreak / MINUTES_PER_HOUR) * jobsPerHour
+  );
   //Rate Multipliers
   if (shiftDay === WEEKEND_SELECTOR_LABEL) {
     totalJobs *= WEEKEND_JOBS_MULTIPLIER;

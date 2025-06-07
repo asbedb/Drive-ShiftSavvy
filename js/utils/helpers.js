@@ -6,7 +6,7 @@ import {
   MILLISECONDS_PER_SECOND,
   SECONDS_PER_MINUTE,
   MINUTES_PER_HOUR,
-} from "../constants/definitions";
+} from "../constants/definitions.js";
 
 export function reload() {
   location.reload();
@@ -21,11 +21,11 @@ export function convertUnitToMilliseconds(value, unitType) {
   } else if (lowerCaseUnitType === "seconds") {
     return value * MILLISECONDS_PER_SECOND;
   } else {
-    throw new TypeErrorerror(`Invalid Unit Type: "${unitType}"`);
+    throw new TypeError (`Invalid Unit Type: "${unitType}"`);
   }
 }
 
-export function convertMilliSecondsToDuration(milliseconds) {
+export function convertMillisecondsToDuration(milliseconds) {
   const absMilliseconds = Math.abs(milliseconds);
   const totalSeconds = Math.floor(absMilliseconds / MILLISECONDS_PER_SECOND);
   const seconds = totalSeconds % SECONDS_PER_MINUTE;
